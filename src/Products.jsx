@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { supabase } from './config/supabase';
 import './Products.css';
@@ -11,11 +11,41 @@ const Products = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [cartItems, setCartItems] = useState([]);
+  const [diseaseFilter, setDiseaseFilter] = useState(null);
+  const [categoryIdsFilter, setCategoryIdsFilter] = useState([]);
+  const [keywordsFilter, setKeywordsFilter] = useState([]);
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   // Load products and categories on component mount
   useEffect(() => {
+    // Handle URL parameters for filtering
+    const urlCategory = searchParams.get('category');
+    const urlDisease = searchParams.get('disease');
+    const urlCategoryIds = searchParams.get('categoryIds');
+    const urlKeywords = searchParams.get('keywords');
+    
+    if (urlCategory) {
+      // Map URL category to actual category name
+      if (urlCategory === 'medicines') {
+        setSelectedCategory('Medicine');
+      } else if (urlCategory === 'healthcare') {
+        setSelectedCategory('Healthcare');
+      } else {
+        setSelectedCategory(urlCategory);
+      }
+    }
+    if (urlDisease) {
+      setDiseaseFilter(urlDisease);
+    }
+    if (urlCategoryIds) {
+      setCategoryIdsFilter(urlCategoryIds.split(','));
+    }
+    if (urlKeywords) {
+      setKeywordsFilter(urlKeywords.split(','));
+    }
+    
     // Add a timeout to prevent infinite loading
     const loadingTimeout = setTimeout(() => {
       if (loading) {
@@ -136,17 +166,7 @@ const Products = () => {
     }
   };
 
-  // Filter products based on category and search
-  const filteredProducts = products.filter(product => {
-    const matchesCategory = selectedCategory === 'all' || 
-      getProductCategoryName(product) === selectedCategory;
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    return matchesCategory && matchesSearch;
-  });
-
-  // Get category name from product
+  // Helper functions
   const getProductCategoryName = (product) => {
     // Find category directly from categories array
     if (product.category_id && categories.length > 0) {
@@ -156,10 +176,58 @@ const Products = () => {
     return 'Uncategorized';
   };
 
-  // Get category name by ID
   const getCategoryName = (categoryId) => {
     const category = categories.find(cat => cat.id === categoryId);
     return category ? category.name : 'Uncategorized';
+  };
+
+  // Filter products based on category, search, and disease filters
+  const filteredProducts = products.filter(product => {
+    // Basic category and search filtering
+    let matchesCategory = true;
+    if (selectedCategory === 'all') {
+      matchesCategory = true;
+    } else if (selectedCategory === 'Medicine') {
+      // For Medicine category, show all products (no category restriction)
+      matchesCategory = true;
+    } else {
+      matchesCategory = getProductCategoryName(product) === selectedCategory;
+    }
+    
+    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.description.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // Disease-based filtering
+    let matchesDisease = true;
+    if (diseaseFilter || categoryIdsFilter.length > 0 || keywordsFilter.length > 0) {
+      // Check if product matches category IDs
+      if (categoryIdsFilter.length > 0) {
+        matchesDisease = categoryIdsFilter.includes(product.category_id);
+      }
+      
+      // Check if product matches keywords
+      if (keywordsFilter.length > 0 && matchesDisease) {
+        const productText = `${product.name} ${product.description}`.toLowerCase();
+        matchesDisease = keywordsFilter.some(keyword => 
+          productText.includes(keyword.toLowerCase())
+        );
+      }
+    }
+    
+    return matchesCategory && matchesSearch && matchesDisease;
+  });
+
+  // Clear disease filters
+  const clearDiseaseFilters = () => {
+    setDiseaseFilter(null);
+    setCategoryIdsFilter([]);
+    setKeywordsFilter([]);
+    // Update URL to remove disease parameters
+    const params = new URLSearchParams(searchParams);
+    params.delete('disease');
+    params.delete('categoryIds');
+    params.delete('keywords');
+    navigate(`/products?${params.toString()}`);
   };
 
   // Scroll to top when component mounts
@@ -214,6 +282,35 @@ const Products = () => {
           </div>
         </div>
 
+        {/* Filter Summary */}
+        {(diseaseFilter || categoryIdsFilter.length > 0 || keywordsFilter.length > 0) && (
+          <div className="filter-summary">
+            <div className="active-filters">
+              {diseaseFilter && (
+                <span className="filter-tag">
+                  Disease: {diseaseFilter}
+                  <button onClick={clearDiseaseFilters} className="clear-filter-btn">×</button>
+                </span>
+              )}
+              {categoryIdsFilter.length > 0 && (
+                <span className="filter-tag">
+                  Categories: {categoryIdsFilter.length} selected
+                  <button onClick={clearDiseaseFilters} className="clear-filter-btn">×</button>
+                </span>
+              )}
+              {keywordsFilter.length > 0 && (
+                <span className="filter-tag">
+                  Keywords: {keywordsFilter.join(', ')}
+                  <button onClick={clearDiseaseFilters} className="clear-filter-btn">×</button>
+                </span>
+              )}
+            </div>
+            <button onClick={clearDiseaseFilters} className="clear-all-filters-btn">
+              Clear All Filters
+            </button>
+          </div>
+        )}
+
         {/* Products Grid */}
         <div className="products-grid">
           {filteredProducts.length === 0 ? (
@@ -222,7 +319,12 @@ const Products = () => {
             </div>
           ) : (
             filteredProducts.map(product => (
-              <div key={product.id} className="product-card">
+              <div 
+                key={product.id} 
+                className="product-card"
+                onClick={() => navigate(`/product/${product.id}`)}
+                style={{ cursor: 'pointer' }}
+              >
                 <div className="product-image">
                   {product.image_urls && product.image_urls.length > 0 ? (
                     <img 
@@ -255,7 +357,10 @@ const Products = () => {
 
                   <button
                     className={`add-to-cart-btn ${!product.in_stock ? 'disabled' : ''}`}
-                    onClick={() => addToCart(product)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      addToCart(product);
+                    }}
                     disabled={!product.in_stock}
                   >
                     {product.in_stock ? 'Add to Cart' : 'Out of Stock'}

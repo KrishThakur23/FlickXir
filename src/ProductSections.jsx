@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ProductService from './services/productService';
 import { useCart } from './contexts/CartContext';
 import './ProductSections.css';
 
 const ProductSections = () => {
+  const navigate = useNavigate();
   const [productSections, setProductSections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -116,13 +118,24 @@ const ProductSections = () => {
               { name: 'Ibuprofen 400mg', price: 60, imageUrl: 'https://dummyimage.com/300x300/fef3c7/1e293b&text=Ibuprofen+400mg' },
               { name: 'Vitamin D3 1000IU', price: 180, imageUrl: 'https://dummyimage.com/300x300/f0fdf4/1e293b&text=Vitamin+D3+1000IU' }
             ].map((product, index) => (
-              <div key={index} className="product-card">
+              <div 
+                key={index} 
+                className="product-card"
+                onClick={() => navigate(`/product/${product.id || 'fallback-${index}'}`)}
+                style={{ cursor: 'pointer' }}
+              >
                 <div className="product-image">
                   <img src={product.imageUrl} alt={product.name} />
                 </div>
                 <div className="product-name">{product.name}</div>
                 <div className="product-price">₹{product.price}</div>
-                <button className="add-to-cart" onClick={() => handleAddToCart(product)}>
+                <button 
+                  className="add-to-cart" 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleAddToCart(product);
+                  }}
+                >
                   Add to Cart
                 </button>
               </div>
@@ -179,7 +192,12 @@ const ProductSections = () => {
             </button>
             <div className="product-grid">
               {section.products.map((product, productIndex) => (
-                <div key={product.id} className="product-card">
+                <div 
+                  key={product.id} 
+                  className="product-card"
+                  onClick={() => navigate(`/product/${product.id}`)}
+                  style={{ cursor: 'pointer' }}
+                >
                   <div className="product-image">
                     <img src={product.imageUrl} alt={product.name} />
                   </div>
@@ -187,7 +205,10 @@ const ProductSections = () => {
                   <div className="product-price">₹{product.price}</div>
                   <button 
                     className="add-to-cart"
-                    onClick={() => handleAddToCart(product)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAddToCart(product);
+                    }}
                     disabled={!product.inStock}
                   >
                     {product.inStock ? 'Add to Cart' : 'Out of Stock'}

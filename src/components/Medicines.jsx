@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ProductService from '../services/productService';
 import './Medicines.css';
 
 const Medicines = () => {
+  const navigate = useNavigate();
   const [medicines, setMedicines] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedMedicine, setSelectedMedicine] = useState(null);
-  const [showModal, setShowModal] = useState(false);
+
 
   useEffect(() => {
     fetchMedicines();
@@ -30,15 +31,7 @@ const Medicines = () => {
     }
   };
 
-  const openModal = (medicine) => {
-    setSelectedMedicine(medicine);
-    setShowModal(true);
-  };
 
-  const closeModal = () => {
-    setShowModal(false);
-    setSelectedMedicine(null);
-  };
 
   if (loading) {
     return (
@@ -81,7 +74,12 @@ const Medicines = () => {
         ) : (
           <div className="medicines-grid">
             {medicines.map((medicine) => (
-              <div key={medicine.id} className="medicine-card">
+              <div 
+                key={medicine.id} 
+                className="medicine-card"
+                onClick={() => navigate(`/product/${medicine.id}`)}
+                style={{ cursor: 'pointer' }}
+              >
                 <div className="medicine-image">
                   <img 
                     src={medicine.image_url} 
@@ -103,7 +101,10 @@ const Medicines = () => {
                   )}
                   <div className="medicine-price">₹{medicine.price}</div>
                   <button 
-                    onClick={() => openModal(medicine)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/product/${medicine.id}`);
+                    }}
                     className="view-details-btn"
                   >
                     View Details
@@ -115,37 +116,6 @@ const Medicines = () => {
         )}
       </div>
 
-      {/* Medicine Details Modal */}
-      {showModal && selectedMedicine && (
-        <div className="modal-overlay" onClick={closeModal}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={closeModal}>×</button>
-            <div className="modal-body">
-              <div className="modal-image">
-                <img 
-                  src={selectedMedicine.image_url} 
-                  alt={selectedMedicine.name}
-                  onError={(e) => {
-                    e.target.src = 'https://images.unsplash.com/photo-1584308666744-24d5b474b2f0?w=400&h=300&fit=crop&crop=center';
-                  }}
-                />
-              </div>
-              <div className="modal-info">
-                <h2>{selectedMedicine.name}</h2>
-                <p className="modal-description">{selectedMedicine.description}</p>
-                {selectedMedicine.dosage_limit && (
-                  <div className="modal-dosage">
-                    <h3>Dosage Instructions:</h3>
-                    <p>{selectedMedicine.dosage_limit}</p>
-                  </div>
-                )}
-                <div className="modal-price">₹{selectedMedicine.price}</div>
-                <button className="add-to-cart-btn">Add to Cart</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -54,6 +54,15 @@ const Donate = () => {
     loadData();
   }, []);
 
+  // Get category name from product
+  const getProductCategoryName = (product) => {
+    if (product.category_id && categories.length > 0) {
+      const category = categories.find(cat => cat.id === product.category_id);
+      return category ? category.name : 'Uncategorized';
+    }
+    return 'Uncategorized';
+  };
+
   // Filter products based on category and search
   const filteredProducts = products.filter(product => {
     const matchesCategory = selectedCategory === 'all' || 
@@ -63,15 +72,6 @@ const Donate = () => {
     
     return matchesCategory && matchesSearch;
   });
-
-  // Get category name from product
-  const getProductCategoryName = (product) => {
-    if (product.category_id && categories.length > 0) {
-      const category = categories.find(cat => cat.id === product.category_id);
-      return category ? category.name : 'Uncategorized';
-    }
-    return 'Uncategorized';
-  };
 
   // Add medicine to donation list
   const addToDonation = (product) => {
@@ -303,7 +303,12 @@ const Donate = () => {
                 </div>
               ) : (
                 filteredProducts.map(product => (
-                  <div key={product.id} className="product-card">
+                  <div 
+                    key={product.id} 
+                    className="product-card"
+                    onClick={() => navigate(`/product/${product.id}`)}
+                    style={{ cursor: 'pointer' }}
+                  >
                     <div className="product-image">
                       {product.image_urls && product.image_urls.length > 0 ? (
                         <img 

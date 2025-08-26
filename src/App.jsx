@@ -22,6 +22,8 @@ import ReportVulnerability from './ReportVulnerability';
 import PrescriptionUpload from './PrescriptionUpload';
 import Cart from './Cart';
 import Medicines from './components/Medicines';
+import Products from './Products';
+import ProductDetail from './components/ProductDetail';
 import './App.css';
 
 function App() {
@@ -55,7 +57,9 @@ function App() {
               <Route path="/report-vulnerability" element={<ReportVulnerability />} />
               <Route path="/prescription-upload" element={<PrescriptionUpload />} />
               <Route path="/cart" element={<Cart />} />
-              <Route path="/medicines" element={<Medicines />} />
+                             <Route path="/medicines" element={<Medicines />} />
+               <Route path="/products" element={<Products />} />
+               <Route path="/product/:productId" element={<ProductDetail />} />
             </Routes>
           </div>
         </Router>

@@ -482,7 +482,12 @@ const AdminDashboard = () => {
               ) : (
                 <div className="medicines-grid">
                   {filteredMedicines.map((medicine) => (
-                    <div key={medicine.id} className="medicine-card">
+                    <div 
+                      key={medicine.id} 
+                      className="medicine-card"
+                      onClick={() => navigate(`/product/${medicine.id}`)}
+                      style={{ cursor: 'pointer' }}
+                    >
                       <div className="medicine-image">
                         <img 
                           src={medicine.image_url} 
@@ -504,7 +509,10 @@ const AdminDashboard = () => {
                         <div className="medicine-actions">
                           <button 
                             className="btn-danger"
-                            onClick={() => deleteMedicine(medicine.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteMedicine(medicine.id);
+                            }}
                           >
                             <span className="btn-icon">🗑️</span>
                             Delete

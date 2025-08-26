@@ -1,7 +1,11 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import './CategoriesSection.css';
 
 const CategoriesSection = () => {
+  const navigate = useNavigate();
+
+
   const categories = [
     {
       name: 'Medicine',
@@ -39,19 +43,48 @@ const CategoriesSection = () => {
     {
       name: 'Cardiovascular',
       icon: '❤️',
-      offer: 'HEART HEALTH'
+      offer: 'HEART HEALTH',
+      categoryIds: ['fbefc7d5-0c94-4d02-8015-3dd555721040'], // Medical Equipment
+      keywords: ['blood pressure', 'bp monitor', 'heart', 'cardiovascular']
     },
     {
       name: 'Diabetes',
       icon: '🩸',
-      offer: 'BLOOD SUGAR'
+      offer: 'BLOOD SUGAR',
+      categoryIds: ['33e6d1c2-473e-46c7-bbd5-95b7e5897dad', 'fbefc7d5-0c94-4d02-8015-3dd555721040'], // Essential Medicines + Medical Equipment
+      keywords: ['diabetes', 'glucose', 'metformin', 'blood sugar', 'insulin']
     },
     {
       name: 'Respiratory',
       icon: '🫁',
-      offer: 'LUNG CARE'
+      offer: 'LUNG CARE',
+      categoryIds: ['fbefc7d5-0c94-4d02-8015-3dd555721040'], // Medical Equipment
+      keywords: ['nebulizer', 'respiratory', 'asthma', 'bronchitis', 'copd', 'pulse oximeter']
     }
   ];
+
+  // Function to handle disease button clicks
+  const handleDiseaseClick = (disease) => {
+    // Navigate to products page with disease filter
+    const params = new URLSearchParams();
+    params.set('disease', disease.name.toLowerCase());
+    
+    // Add category IDs if available
+    if (disease.categoryIds && disease.categoryIds.length > 0) {
+      params.set('categoryIds', disease.categoryIds.join(','));
+    }
+    
+    // Add keywords if available
+    if (disease.keywords && disease.keywords.length > 0) {
+      params.set('keywords', disease.keywords.join(','));
+    }
+    
+    navigate(`/products?${params.toString()}`);
+  };
+
+
+
+
 
   return (
     <section className="categories-section">
@@ -59,7 +92,18 @@ const CategoriesSection = () => {
         {/* Category Shortcuts */}
         <div className="category-shortcuts">
           {categories.map((category, index) => (
-            <div key={index} className="category-item">
+            <div 
+              key={index} 
+              className="category-item"
+              onClick={() => {
+                if (category.name === 'Medicine') {
+                  navigate('/products?category=medicines');
+                } else if (category.name === 'Healthcare') {
+                  navigate('/products?category=healthcare');
+                }
+              }}
+              style={{ cursor: category.name === 'Medicine' || category.name === 'Healthcare' ? 'pointer' : 'default' }}
+            >
               <div className="category-icon">
                 <img src={category.image} alt={category.name} className="category-img" />
               </div>
@@ -72,12 +116,17 @@ const CategoriesSection = () => {
       
       {/* Diseases Section */}
       <div className="container">
-        <div className="section-header">
+                            <div className="section-header">
           <h2 className="section-title">Diseases</h2>
         </div>
         <div className="category-shortcuts">
           {diseases.map((disease, index) => (
-            <div key={index} className="category-item">
+            <div 
+              key={index} 
+              className="category-item disease-item"
+              onClick={() => handleDiseaseClick(disease)}
+              style={{ cursor: 'pointer' }}
+            >
               <div className="category-icon">{disease.icon}</div>
               <div className="category-name">{disease.name}</div>
               <div className="category-offer">{disease.offer}</div>
@@ -85,6 +134,8 @@ const CategoriesSection = () => {
           ))}
         </div>
       </div>
+
+
     </section>
   );
 };
