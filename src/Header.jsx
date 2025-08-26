@@ -94,14 +94,7 @@ const Header = forwardRef(({ isSearchActive, currentSearchTerm = 'medicines' }, 
           </div>
         </div>
 
-        {/* Main Navigation */}
-        <nav className="main-nav">
-          <Link to="/" className="nav-link">Home</Link>
-          <Link to="/products" className="nav-link">All Products</Link>
-          <Link to="/medicines" className="nav-link">Medicines</Link>
-          <Link to="/donate" className="nav-link">Donate</Link>
-          <Link to="/about" className="nav-link">About</Link>
-        </nav>
+
 
         <div className="user-actions">
           <div className="header-search-container">
