@@ -10,7 +10,9 @@ const Header = forwardRef(({ isSearchActive, currentSearchTerm = 'medicines' }, 
   const { isAuthenticated, user } = useAuth();
   const { getCartItemCount } = useCart();
   const navigate = useNavigate();
-  const isAdminUser = user?.email ? user.email.toLowerCase() === 'bhalackdhebil@gmail.com' : false;
+  // You can change this email to your own admin email
+  const ADMIN_EMAIL = 'bhalackdhebil@gmail.com'; // Change this to your email
+  const isAdminUser = user?.email ? user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase() : false;
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
@@ -42,7 +44,7 @@ const Header = forwardRef(({ isSearchActive, currentSearchTerm = 'medicines' }, 
   };
 
   const changeLocation = () => {
-    alert("This would open a modal to enter your precise delivery address.");
+    navigate('/addresses');
   };
 
   // Close user menu on outside click

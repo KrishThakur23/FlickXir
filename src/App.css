@@ -1,7 +1,21 @@
 .App {
   text-align: center;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
+.main-content {
+  flex: 1;
+  min-height: calc(100vh - 200px); /* Adjust based on your header/footer heights */
+}
+
+/* Ensure the app takes full height */
+.App {
+  min-height: 100vh;
+}
+
+/* Remove the old App-logo styles if not needed */
 .App-logo {
   height: 40vmin;
   pointer-events: none;

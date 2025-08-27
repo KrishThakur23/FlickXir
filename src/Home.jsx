@@ -4,8 +4,7 @@ import HeroSection from './HeroSection';
 import PromoBanners from './PromoBanners';
 import CategoriesSection from './CategoriesSection';
 import ProductSections from './ProductSections';
-import DatabaseDebug from './components/DatabaseDebug';
-import Footer from './Footer';
+
 import './Home.css';
 
 const Home = () => {
@@ -98,10 +97,9 @@ const Home = () => {
         <HeroSection ref={heroSearchRef} currentSearchTerm={searchTerms[currentTermIndex]} />
         <PromoBanners />
         <CategoriesSection />
-        <DatabaseDebug />
         <ProductSections />
       </main>
-      <Footer />
+
     </div>
   );
 };

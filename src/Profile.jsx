@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from './contexts/AuthContext';
 import Header from './Header';
-import Footer from './Footer';
+
 import { supabase } from './config/supabase';
 import { UserProfileService } from './services/userProfileService';
 import './Profile.css';
@@ -145,9 +145,9 @@ const Profile = () => {
 
       // Use direct Supabase calls instead of UserProfileService for now
       const { data: existingProfile, error: fetchError } = await supabase
-        .from('user_profiles')
+        .from('profiles')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('id', user.id)
         .single();
 
       if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = no rows returned
@@ -159,9 +159,9 @@ const Profile = () => {
         // Update existing profile
         console.log('Updating existing profile...');
         const { data, error } = await supabase
-          .from('user_profiles')
+          .from('profiles')
           .update(profileData)
-          .eq('user_id', user.id)
+          .eq('id', user.id)
           .select()
           .single();
 
@@ -174,7 +174,7 @@ const Profile = () => {
         // Create new profile
         console.log('Creating new profile...');
         const { data, error } = await supabase
-          .from('user_profiles')
+          .from('profiles')
           .insert(profileData)
           .select()
           .single();
@@ -568,7 +568,6 @@ const Profile = () => {
           </div>
         </div>
       </div>
-      <Footer />
     </div>
   );
 };

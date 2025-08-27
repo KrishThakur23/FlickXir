@@ -5,7 +5,7 @@ export class UserProfileService {
   static async getUserProfile(userId) {
     try {
       const { data, error } = await supabase
-        .from('user_profiles')
+        .from('profiles')
         .select('*')
         .eq('user_id', userId)
         .single();
@@ -26,7 +26,7 @@ export class UserProfileService {
   static async upsertUserProfile(profileData) {
     try {
       const { data, error } = await supabase
-        .from('user_profiles')
+        .from('profiles')
         .upsert(profileData, {
           onConflict: 'user_id',
           ignoreDuplicates: false
@@ -50,7 +50,7 @@ export class UserProfileService {
   static async updateUserProfile(userId, updates) {
     try {
       const { data, error } = await supabase
-        .from('user_profiles')
+        .from('profiles')
         .update(updates)
         .eq('user_id', userId)
         .select()
@@ -79,7 +79,7 @@ export class UserProfileService {
       );
       
       const createPromise = supabase
-        .from('user_profiles')
+        .from('profiles')
         .insert(profileData)
         .select()
         .single();
@@ -115,7 +115,7 @@ export class UserProfileService {
       );
       
       const profilePromise = supabase
-        .from('user_profiles')
+        .from('profiles')
         .select('id')
         .eq('user_id', userId)
         .single();

@@ -2,6 +2,8 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
+import Header from './Header';
+import Footer from './Footer';
 import Home from './Home';
 import SignIn from './SignIn';
 import SignUp from './SignUp';
@@ -24,6 +26,8 @@ import Cart from './Cart';
 import Medicines from './components/Medicines';
 import Products from './Products';
 import ProductDetail from './components/ProductDetail';
+import Addresses from './Addresses';
+import Checkout from './Checkout';
 import './App.css';
 
 function App() {
@@ -37,30 +41,36 @@ function App() {
           }}
         >
           <div className="App">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/signin" element={<SignIn />} />
-              <Route path="/signup" element={<SignUp />} />
-              <Route path="/about" element={<AboutUs />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/donate" element={<Donate />} />
-              <Route path="/partner" element={<Partner />} />
-              <Route path="/help-center" element={<HelpCenter />} />
-              <Route path="/order-tracking" element={<OrderTracking />} />
-              <Route path="/shipping-info" element={<ShippingInfo />} />
-              <Route path="/return-policy" element={<ReturnPolicy />} />
-              <Route path="/faq" element={<FAQ />} />
-              <Route path="/terms" element={<Terms />} />
-              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-              <Route path="/disclaimer" element={<Disclaimer />} />
-              <Route path="/report-vulnerability" element={<ReportVulnerability />} />
-              <Route path="/prescription-upload" element={<PrescriptionUpload />} />
-              <Route path="/cart" element={<Cart />} />
-                             <Route path="/medicines" element={<Medicines />} />
-               <Route path="/products" element={<Products />} />
-               <Route path="/product/:productId" element={<ProductDetail />} />
-            </Routes>
+            <Header />
+            <main className="main-content">
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/signin" element={<SignIn />} />
+                <Route path="/signup" element={<SignUp />} />
+                <Route path="/about" element={<AboutUs />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/donate" element={<Donate />} />
+                <Route path="/partner" element={<Partner />} />
+                <Route path="/help-center" element={<HelpCenter />} />
+                <Route path="/order-tracking" element={<OrderTracking />} />
+                <Route path="/shipping-info" element={<ShippingInfo />} />
+                <Route path="/return-policy" element={<ReturnPolicy />} />
+                <Route path="/faq" element={<FAQ />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                <Route path="/disclaimer" element={<Disclaimer />} />
+                <Route path="/report-vulnerability" element={<ReportVulnerability />} />
+                <Route path="/prescription-upload" element={<PrescriptionUpload />} />
+                <Route path="/cart" element={<Cart />} />
+                <Route path="/medicines" element={<Medicines />} />
+                <Route path="/products" element={<Products />} />
+                <Route path="/product/:productId" element={<ProductDetail />} />
+                <Route path="/addresses" element={<Addresses />} />
+                <Route path="/checkout" element={<Checkout />} />
+              </Routes>
+            </main>
+            <Footer />
           </div>
         </Router>
       </CartProvider>

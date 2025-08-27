@@ -18,7 +18,7 @@ const Products = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  // Load products and categories on component mount
+      // Load products and categories on component mount
   useEffect(() => {
     // Handle URL parameters for filtering
     const urlCategory = searchParams.get('category');
@@ -53,6 +53,8 @@ const Products = () => {
       }
     }, 10000); // 10 second timeout
 
+
+
     const loadCategories = async () => {
       try {
         const { data, error } = await supabase
@@ -73,7 +75,10 @@ const Products = () => {
       try {
         const { data, error } = await supabase
           .from("products")
-          .select("*");
+          .select(`
+            *,
+            categories(name, description)
+          `);
     
         if (error) {
           setProducts([]);
@@ -106,13 +111,25 @@ const Products = () => {
     if (!isAuthenticated || !user) return;
 
     try {
+      // First get the user's cart, then get cart items
+      const { data: cartData, error: cartError } = await supabase
+        .from('cart')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (cartError) {
+        setCartItems([]);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('cart_items')
         .select(`
           *,
           products (*)
         `)
-        .eq('user_id', user.id);
+        .eq('cart_id', cartData.id);
 
       if (error) {
         setCartItems([]);
@@ -143,14 +160,35 @@ const Products = () => {
 
         if (error) throw error;
       } else {
-        // Add new item
+        // Add new item - first ensure user has a cart
+        let cartId;
+        const { data: existingCart, error: cartError } = await supabase
+          .from('cart')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
+
+        if (cartError || !existingCart) {
+          // Create cart if it doesn't exist
+          const { data: newCart, error: createCartError } = await supabase
+            .from('cart')
+            .insert({ user_id: user.id })
+            .select('id')
+            .single();
+
+          if (createCartError) throw createCartError;
+          cartId = newCart.id;
+        } else {
+          cartId = existingCart.id;
+        }
+
+        // Now add the cart item
         const { error } = await supabase
           .from('cart_items')
           .insert({
-            user_id: user.id,
+            cart_id: cartId,
             product_id: product.id,
-            quantity: 1,
-            price: product.price
+            quantity: 1
           });
 
         if (error) throw error;
@@ -168,17 +206,15 @@ const Products = () => {
 
   // Helper functions
   const getProductCategoryName = (product) => {
-    // Find category directly from categories array
-    if (product.category_id && categories.length > 0) {
-      const category = categories.find(cat => cat.id === product.category_id);
-      return category ? category.name : 'Uncategorized';
-    }
-    return 'Uncategorized';
+    return product.categories?.name || 'Uncategorized';
   };
 
   const getCategoryName = (categoryId) => {
-    const category = categories.find(cat => cat.id === categoryId);
-    return category ? category.name : 'Uncategorized';
+    if (categoryId && categories.length > 0) {
+      const category = categories.find(cat => cat.id === categoryId);
+      return category ? category.name : 'Uncategorized';
+    }
+    return 'Uncategorized';
   };
 
   // Filter products based on category, search, and disease filters
@@ -339,9 +375,9 @@ const Products = () => {
                       <span>📦</span>
                     </div>
                   )}
-                  <div className="product-category">
-                    {getProductCategoryName(product)}
-                  </div>
+                                      <div className="product-category">
+                      <span className="category-tag">{getProductCategoryName(product)}</span>
+                    </div>
                 </div>
 
                 <div className="product-info">

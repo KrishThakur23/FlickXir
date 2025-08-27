@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 import { supabase } from '../config/supabase';
-import Header from '../Header';
-import Footer from '../Footer';
 import './ProductDetail.css';
 
 const ProductDetail = () => {
@@ -32,7 +30,7 @@ const ProductDetail = () => {
         .from('products')
         .select(`
           *,
-          category:categories(name, description, slug)
+          categories (*)
         `)
         .eq('id', productId)
         .eq('is_active', true)
@@ -94,12 +92,10 @@ const ProductDetail = () => {
   if (loading) {
     return (
       <div className="product-detail-page">
-        <Header />
         <div className="loading-container">
           <div className="loading-spinner"></div>
           <p>Loading product...</p>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -107,7 +103,6 @@ const ProductDetail = () => {
   if (error || !product) {
     return (
       <div className="product-detail-page">
-        <Header />
         <div className="error-container">
           <h2>Product Not Found</h2>
           <p>{error || 'The product you are looking for does not exist.'}</p>
@@ -115,7 +110,6 @@ const ProductDetail = () => {
             Back to Home
           </button>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -127,16 +121,14 @@ const ProductDetail = () => {
 
   return (
     <div className="product-detail-page">
-      <Header />
-      
       <main className="product-detail-main">
         <div className="container">
           {/* Breadcrumb */}
           <nav className="breadcrumb">
             <span onClick={() => navigate('/')} className="breadcrumb-link">Home</span>
             <span className="breadcrumb-separator">/</span>
-            <span onClick={() => navigate(`/category/${product.category?.slug}`)} className="breadcrumb-link">
-              {product.category?.name}
+            <span onClick={() => navigate(`/category/${product.categories?.name?.toLowerCase().replace(/\s+/g, '-')}`)} className="breadcrumb-link">
+              {product.categories?.name || 'Uncategorized'}
             </span>
             <span className="breadcrumb-separator">/</span>
             <span className="breadcrumb-current">{product.name}</span>
@@ -177,9 +169,9 @@ const ProductDetail = () => {
             <div className="product-info">
               <h1 className="product-title">{product.name}</h1>
               
-              <div className="product-category">
-                <span className="category-tag">{product.category?.name}</span>
-              </div>
+                              <div className="product-category">
+                  <span className="category-tag">{product.categories?.name || 'Uncategorized'}</span>
+                </div>
 
               <div className="product-price-section">
                 <span className="current-price">₹{product.price}</span>
@@ -224,6 +216,20 @@ const ProductDetail = () => {
                   </div>
                 )}
               </div>
+
+              {/* Big Description Section */}
+              {product.big_description && (
+                <div className="product-big-description">
+                  <h3>Product Details</h3>
+                  <div className="big-description-content">
+                    {product.big_description.split('\n').map((paragraph, index) => (
+                      <p key={index} className="description-paragraph">
+                        {paragraph}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Stock Status */}
               <div className="stock-status">
@@ -324,8 +330,6 @@ const ProductDetail = () => {
           )}
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 };

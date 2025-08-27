@@ -47,7 +47,7 @@ export class ProductService {
         .from('products')
         .select(`
           *,
-          category:categories(name, description)
+          categories(name, description)
         `)
 
       // Apply filters
@@ -306,6 +306,8 @@ export class ProductService {
       return { error }
     }
   }
+
+
 }
 
 export default ProductService

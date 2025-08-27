@@ -410,6 +410,20 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
+-- Function to automatically create profile when user signs up
+CREATE OR REPLACE FUNCTION handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO profiles (id, name, email)
+  VALUES (
+    NEW.id,
+    COALESCE(NEW.raw_user_meta_data->>'name', NEW.email),
+    NEW.email
+  );
+  RETURN NEW;
+END;
+$$ language 'plpgsql';
+
 -- Create triggers for updated_at columns
 CREATE TRIGGER update_profiles_updated_at
     BEFORE UPDATE ON profiles
@@ -456,6 +470,11 @@ CREATE TRIGGER generate_order_number_trigger
     BEFORE INSERT ON orders
     FOR EACH ROW EXECUTE FUNCTION generate_order_number();
 
+-- Create trigger to automatically create profile on user signup
+CREATE TRIGGER on_auth_user_created
+    AFTER INSERT ON auth.users
+    FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+
 -- =====================================================
 -- ROW LEVEL SECURITY (RLS) POLICIES
 -- =====================================================
@@ -485,6 +504,10 @@ CREATE POLICY "Users can update their own profile" ON profiles
 
 CREATE POLICY "Users can insert their own profile" ON profiles
     FOR INSERT WITH CHECK (auth.uid() = id);
+
+-- Allow the trigger function to insert profiles (needed for automatic profile creation)
+CREATE POLICY "Enable insert for authenticated users only" ON profiles
+    FOR INSERT WITH CHECK (auth.role() = 'authenticated');
 
 -- Categories policies (public read, admin write)
 CREATE POLICY "Anyone can view categories" ON categories

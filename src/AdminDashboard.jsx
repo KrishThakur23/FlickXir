@@ -1,31 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from './Header';
-import Footer from './Footer';
+
 import { useAuth } from './contexts/AuthContext';
-import MedicineService from './services/medicineService';
+import { supabase } from './config/supabase';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, isAdmin, loading, user } = useAuth();
+  const { isAuthenticated, loading, user } = useAuth();
+  // You can change this email to your own admin email
+  const ADMIN_EMAIL = 'bhalackdhebil@gmail.com'; // Change this to your email
+  const isAdminUser = user?.email ? user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase() : false;
 
-  // Medicine state
-  const [medicineName, setMedicineName] = useState('');
-  const [medicineDescription, setMedicineDescription] = useState('');
-  const [medicinePrice, setMedicinePrice] = useState('');
-  const [medicineDosage, setMedicineDosage] = useState('');
-  const [medicineImage, setMedicineImage] = useState(null);
-  const [isMedicineSubmitting, setIsMedicineSubmitting] = useState(false);
-  const [medicineMessage, setMedicineMessage] = useState('');
-  const [medicines, setMedicines] = useState([]);
-  const [showMedicineForm, setShowMedicineForm] = useState(false);
+  // Product state
+  const [productName, setProductName] = useState('');
+  const [productDescription, setProductDescription] = useState('');
+  const [productPrice, setProductPrice] = useState('');
+  const [productCategory, setProductCategory] = useState('');
+  const [productImage, setProductImage] = useState(null);
+  const [isProductSubmitting, setIsProductSubmitting] = useState(false);
+  const [productMessage, setProductMessage] = useState('');
+  const [products, setProducts] = useState([]);
+  const [showProductForm, setShowProductForm] = useState(false);
+  const [categories, setCategories] = useState([]);
 
   // Dashboard stats
   const [dashboardStats, setDashboardStats] = useState({
-    totalMedicines: 0,
-    lowStock: 0,
-    expiringSoon: 0
+    totalProducts: 0,
+    totalCategories: 0
   });
 
   // Search and filters
@@ -37,35 +39,56 @@ const AdminDashboard = () => {
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
-  // Load medicines on component mount
+  // Load products and categories on component mount
   useEffect(() => {
-    loadMedicines();
+    loadProducts();
+    loadCategories();
   }, []);
 
   // Update dashboard stats
   useEffect(() => {
     updateDashboardStats();
-  }, [medicines]);
+  }, [products, categories]);
 
   const updateDashboardStats = () => {
     setDashboardStats({
-      totalMedicines: medicines.length,
-      lowStock: 0, // TODO: Implement low stock logic
-      expiringSoon: 0 // TODO: Implement expiry logic
+      totalProducts: products.length,
+      totalCategories: categories.length
     });
   };
 
-  const loadMedicines = async () => {
+  const loadCategories = async () => {
     try {
-      const { data, error } = await MedicineService.getAllMedicines();
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .order('name');
+
       if (error) throw error;
-      setMedicines(data || []);
+      setCategories(data || []);
     } catch (err) {
-      console.error('Error loading medicines:', err);
+      console.error('Error loading categories:', err);
     }
   };
 
-  const isAdminUser = isAdmin;
+  const loadProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select(`
+          *,
+          categories(name)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setProducts(data || []);
+    } catch (err) {
+      console.error('Error loading products:', err);
+    }
+  };
+
+
 
   useEffect(() => {
     // Only redirect if we're done loading
@@ -76,66 +99,79 @@ const AdminDashboard = () => {
     }
   }, [loading, isAuthenticated, isAdminUser, navigate]);
 
-  // Medicine handlers
-  const handleMedicineImageChange = (e) => {
+  // Product handlers
+  const handleProductImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setMedicineImage(file);
+      setProductImage(file);
     }
   };
 
-  const handleMedicineSubmit = async (e) => {
+  const handleProductSubmit = async (e) => {
     e.preventDefault();
-    setMedicineMessage('');
-    setIsMedicineSubmitting(true);
+    setProductMessage('');
+    setIsProductSubmitting(true);
     
     try {
       let imageUrl = null;
-      if (medicineImage) {
-        const { url, error } = await MedicineService.uploadMedicineImage(medicineImage);
-        if (error) throw error;
-        imageUrl = url;
+      if (productImage) {
+        // For now, use a placeholder image URL
+        // In production, you'd want to implement proper image upload
+        imageUrl = 'https://images.unsplash.com/photo-1584308666744-24d5b474b2f0?w=400&h=300&fit=crop&crop=center';
       }
 
-      const medicine = {
-        name: medicineName,
-        description: medicineDescription,
-        price: parseFloat(medicinePrice),
-        dosage_limit: medicineDosage,
-        image_url: imageUrl || 'https://images.unsplash.com/photo-1584308666744-24d5b474b2f0?w=400&h=300&fit=crop&crop=center'
+      // Find category ID from selected category name
+      const selectedCategory = categories.find(cat => cat.name === productCategory);
+      const categoryId = selectedCategory ? selectedCategory.id : null;
+
+      const product = {
+        name: productName,
+        description: productDescription,
+        price: parseFloat(productPrice),
+        category_id: categoryId,
+        image_url: imageUrl || 'https://images.unsplash.com/photo-1584308666744-24d5b474b2f0?w=400&h=300&fit=crop&crop=center',
+        in_stock: true,
+        is_active: true
       };
 
-      const { error } = await MedicineService.createMedicine(medicine);
+      const { error } = await supabase
+        .from('products')
+        .insert([product]);
+
       if (error) throw error;
 
-      setMedicineMessage('✅ Medicine added successfully!');
-      setMedicineName('');
-      setMedicineDescription('');
-      setMedicinePrice('');
-      setMedicineDosage('');
-      setMedicineImage(null);
-      setShowMedicineForm(false);
+      setProductMessage('✅ Product added successfully!');
+      setProductName('');
+      setProductDescription('');
+      setProductPrice('');
+      setProductCategory('');
+      setProductImage(null);
+      setShowProductForm(false);
       
-      showToast('Medicine added successfully!', 'success');
-      loadMedicines();
+      showToast('Product added successfully!', 'success');
+      loadProducts();
     } catch (error) {
-      setMedicineMessage(`❌ Error: ${error.message}`);
+      setProductMessage(`❌ Error: ${error.message}`);
       showToast(`Error: ${error.message}`, 'error');
     } finally {
-      setIsMedicineSubmitting(false);
+      setIsProductSubmitting(false);
     }
   };
 
-  const deleteMedicine = async (id) => {
-    if (window.confirm('Are you sure you want to delete this medicine?')) {
+  const deleteProduct = async (id) => {
+    if (window.confirm('Are you sure you want to delete this product?')) {
       try {
-        const { error } = await MedicineService.deleteMedicine(id);
+        const { error } = await supabase
+          .from('products')
+          .delete()
+          .eq('id', id);
+
         if (error) throw error;
         
-        showToast('Medicine deleted successfully!', 'success');
-        loadMedicines();
+        showToast('Product deleted successfully!', 'success');
+        loadProducts();
       } catch (error) {
-        showToast(`Error deleting medicine: ${error.message}`, 'error');
+        showToast(`Error deleting product: ${error.message}`, 'error');
       }
     }
   };
@@ -145,24 +181,28 @@ const AdminDashboard = () => {
     setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
   };
 
-  const filteredMedicines = medicines.filter(medicine =>
-    medicine.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    medicine.description.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredProducts = products.filter(product =>
+    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    product.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Debug logging
   console.log('AdminDashboard - Auth State:', { 
     loading, 
     isAuthenticated, 
-    isAdmin, 
     userEmail: user?.email,
-    isAdminUser 
+    isAdminUser,
+    adminEmail: ADMIN_EMAIL
   });
+  
+  // Show current user email for debugging
+  console.log('🔍 Current user email:', user?.email);
+  console.log('🔍 Admin email:', ADMIN_EMAIL);
+  console.log('🔍 Is admin?', isAdminUser);
 
   if (loading) {
     return (
       <div className="admin-page">
-        <Header />
         <main className="admin-main">
           <div className="admin-container">
             <div className="admin-card">
@@ -177,7 +217,6 @@ const AdminDashboard = () => {
             </div>
           </div>
         </main>
-        <Footer />
       </div>
     );
   }
@@ -192,7 +231,6 @@ const AdminDashboard = () => {
   if (!isAuthenticated) {
     return (
       <div className="admin-page">
-        <Header />
         <main className="admin-main">
           <div className="admin-container">
             <div className="admin-card unauthorized-card">
@@ -207,7 +245,6 @@ const AdminDashboard = () => {
             </div>
           </div>
         </main>
-        <Footer />
       </div>
     );
   }
@@ -215,7 +252,6 @@ const AdminDashboard = () => {
   if (!allowAccess && !tempAdminAccess) {
     return (
       <div className="admin-page">
-        <Header />
         <main className="admin-main">
           <div className="admin-container">
             <div className="admin-card unauthorized-card">
@@ -242,22 +278,20 @@ const AdminDashboard = () => {
             </div>
           </div>
         </main>
-        <Footer />
       </div>
     );
   }
 
   return (
     <div className={`admin-page ${darkMode ? 'dark-mode' : ''}`}>
-      <Header />
       <main className="admin-main">
         <div className="admin-container">
           {/* Dashboard Header */}
           <div className="dashboard-header">
             <div className="header-content">
               <div className="header-text">
-                <h1 className="dashboard-title">Medicine Management Dashboard</h1>
-                <p className="dashboard-subtitle">Manage medicines in your healthcare platform</p>
+                <h1 className="dashboard-title">Product Management Dashboard</h1>
+                <p className="dashboard-subtitle">Add and manage products in your store</p>
               </div>
               <div className="header-actions">
                 <button 
@@ -278,24 +312,17 @@ const AdminDashboard = () => {
           {/* Dashboard Stats Overview */}
           <div className="stats-overview">
             <div className="stat-card">
-              <div className="stat-icon">💊</div>
+              <div className="stat-icon">📦</div>
               <div className="stat-content">
-                <div className="stat-number">{dashboardStats.totalMedicines}</div>
-                <div className="stat-label">Total Medicines</div>
+                <div className="stat-number">{dashboardStats.totalProducts}</div>
+                <div className="stat-label">Total Products</div>
               </div>
             </div>
             <div className="stat-card">
-              <div className="stat-icon">⚠️</div>
+              <div className="stat-icon">🏷️</div>
               <div className="stat-content">
-                <div className="stat-number">{dashboardStats.lowStock}</div>
-                <div className="stat-label">Low Stock</div>
-              </div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon">⏳</div>
-              <div className="stat-content">
-                <div className="stat-number">{dashboardStats.expiringSoon}</div>
-                <div className="stat-label">Expiring Soon</div>
+                <div className="stat-number">{dashboardStats.totalCategories}</div>
+                <div className="stat-label">Total Categories</div>
               </div>
             </div>
           </div>
@@ -306,7 +333,7 @@ const AdminDashboard = () => {
               <div className="search-icon">🔍</div>
               <input
                 type="text"
-                placeholder="Search medicines..."
+                placeholder="Search products..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="search-input"
@@ -314,31 +341,31 @@ const AdminDashboard = () => {
             </div>
           </div>
 
-          {/* Medicine Management Section */}
+          {/* Product Management Section */}
           <div className="content-section">
             <div className="section-header">
-              <h2 className="section-title">Medicine Management</h2>
-              <p className="section-subtitle">Add and manage medicines in your inventory</p>
+              <h2 className="section-title">Product Management</h2>
+              <p className="section-subtitle">Add and manage products in your store</p>
             </div>
 
-            {/* Add Medicine Form */}
-            {showMedicineForm && (
+            {/* Add Product Form */}
+            {showProductForm && (
               <div className="admin-card">
-                <form onSubmit={handleMedicineSubmit} className="admin-form">
+                <form onSubmit={handleProductSubmit} className="admin-form">
                   {/* Basic Info Card */}
                   <div className="form-card">
                     <div className="form-card-header">
-                      <div className="card-icon">💊</div>
-                      <h3>Medicine Information</h3>
+                      <div className="card-icon">📦</div>
+                      <h3>Product Information</h3>
                     </div>
                     <div className="form-card-content">
                       <div className="form-row">
                         <div className="form-field">
-                          <label className="form-label">Medicine Name</label>
+                          <label className="form-label">Product Name</label>
                           <input 
                             className="form-input" 
-                            value={medicineName} 
-                            onChange={(e) => setMedicineName(e.target.value)} 
+                            value={productName} 
+                            onChange={(e) => setProductName(e.target.value)} 
                             required 
                             placeholder="e.g., Paracetamol 500mg" 
                           />
@@ -347,21 +374,21 @@ const AdminDashboard = () => {
                           <label className="form-label">Description</label>
                           <textarea 
                             className="form-textarea" 
-                            value={medicineDescription} 
-                            onChange={(e) => setMedicineDescription(e.target.value)} 
+                            value={productDescription} 
+                            onChange={(e) => setProductDescription(e.target.value)} 
                             rows={4} 
-                            placeholder="Detailed description of the medicine..." 
+                            placeholder="Detailed description of the product..." 
                           />
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Pricing & Dosage Card */}
+                  {/* Pricing & Category Card */}
                   <div className="form-card">
                     <div className="form-card-header">
-                      <div className="card-icon">💉</div>
-                      <h3>Pricing & Dosage</h3>
+                      <div className="card-icon">💰</div>
+                      <h3>Pricing & Category</h3>
                     </div>
                     <div className="form-card-content">
                       <div className="form-row two-col">
@@ -372,20 +399,27 @@ const AdminDashboard = () => {
                             type="number" 
                             min="0" 
                             step="0.01" 
-                            value={medicinePrice} 
-                            onChange={(e) => setMedicinePrice(e.target.value)} 
+                            value={productPrice} 
+                            onChange={(e) => setProductPrice(e.target.value)} 
                             required 
                             placeholder="e.g., 25.00" 
                           />
                         </div>
                         <div className="form-field">
-                          <label className="form-label">Dosage Instructions</label>
-                          <input 
+                          <label className="form-label">Category</label>
+                          <select 
                             className="form-input" 
-                            value={medicineDosage} 
-                            onChange={(e) => setMedicineDosage(e.target.value)} 
-                            placeholder="e.g., Take 1-2 tablets every 4-6 hours" 
-                          />
+                            value={productCategory} 
+                            onChange={(e) => setProductCategory(e.target.value)} 
+                            required
+                          >
+                            <option value="">Select a category</option>
+                            {categories.map(category => (
+                              <option key={category.id} value={category.name}>
+                                {category.name}
+                              </option>
+                            ))}
+                          </select>
                         </div>
                       </div>
                     </div>
@@ -395,17 +429,17 @@ const AdminDashboard = () => {
                   <div className="form-card">
                     <div className="form-card-header">
                       <div className="card-icon">🖼️</div>
-                      <h3>Medicine Image</h3>
+                      <h3>Product Image</h3>
                     </div>
                     <div className="form-card-content">
                       <div className="form-field">
                         <input 
                           type="file" 
                           accept="image/*" 
-                          onChange={handleMedicineImageChange}
+                          onChange={handleProductImageChange}
                           className="file-input-simple"
                         />
-                        <div className="helper-text">Upload a clear image of the medicine (optional)</div>
+                        <div className="helper-text">Upload a clear image of the product (optional)</div>
                       </div>
                     </div>
                   </div>
@@ -415,7 +449,7 @@ const AdminDashboard = () => {
                     <button 
                       className="btn-secondary" 
                       type="button" 
-                      onClick={() => setShowMedicineForm(false)}
+                      onClick={() => setShowProductForm(false)}
                     >
                       <span className="btn-icon">❌</span>
                       Cancel
@@ -423,9 +457,9 @@ const AdminDashboard = () => {
                     <button 
                       className="btn-primary" 
                       type="submit" 
-                      disabled={isMedicineSubmitting}
+                      disabled={isProductSubmitting}
                     >
-                      {isMedicineSubmitting ? (
+                      {isProductSubmitting ? (
                         <>
                           <span className="loading-spinner"></span>
                           Adding...
@@ -433,85 +467,85 @@ const AdminDashboard = () => {
                       ) : (
                         <>
                           <span className="btn-icon">✅</span>
-                          Add Medicine
+                          Add Product
                         </>
                       )}
                     </button>
                   </div>
 
-                  {medicineMessage && (
-                    <div className={`status-message ${medicineMessage.startsWith('✅') ? 'success' : 'error'}`}>
-                      {medicineMessage}
+                  {productMessage && (
+                    <div className={`status-message ${productMessage.startsWith('✅') ? 'success' : 'error'}`}>
+                      {productMessage}
                     </div>
                   )}
                 </form>
               </div>
             )}
 
-            {/* Medicines List */}
-            <div className="medicines-section">
-              <div className="medicines-header">
-                <div className="medicines-title">
-                  <h3>Current Medicines</h3>
-                  <span className="medicines-count">({filteredMedicines.length})</span>
+            {/* Products List */}
+            <div className="products-section">
+              <div className="products-header">
+                <div className="products-title">
+                  <h3>Current Products</h3>
+                  <span className="products-count">({filteredProducts.length})</span>
                 </div>
                 <button 
                   className="btn-primary floating-action"
-                  onClick={() => setShowMedicineForm(!showMedicineForm)}
+                  onClick={() => setShowProductForm(!showProductForm)}
                 >
                   <span className="btn-icon">+</span>
-                  {showMedicineForm ? 'Cancel' : 'Add New Medicine'}
+                  {showProductForm ? 'Cancel' : 'Add New Product'}
                 </button>
               </div>
 
-              {filteredMedicines.length === 0 ? (
+              {filteredProducts.length === 0 ? (
                 <div className="empty-state">
-                  <div className="empty-icon">💊</div>
-                  <h4>No medicines found</h4>
-                  <p>{searchTerm ? 'Try adjusting your search terms' : 'Add your first medicine to get started!'}</p>
+                  <div className="empty-icon">📦</div>
+                  <h4>No products found</h4>
+                  <p>{searchTerm ? 'Try adjusting your search terms' : 'Add your first product to get started!'}</p>
                   {!searchTerm && (
                     <button 
                       className="btn-primary"
-                      onClick={() => setShowMedicineForm(true)}
+                      onClick={() => setShowProductForm(true)}
                     >
                       <span className="btn-icon">+</span>
-                      Add First Medicine
+                      Add First Product
                     </button>
                   )}
                 </div>
               ) : (
-                <div className="medicines-grid">
-                  {filteredMedicines.map((medicine) => (
+                <div className="products-grid">
+                  {filteredProducts.map((product) => (
                     <div 
-                      key={medicine.id} 
-                      className="medicine-card"
-                      onClick={() => navigate(`/product/${medicine.id}`)}
+                      key={product.id} 
+                      className="product-card"
+                      onClick={() => navigate(`/product/${product.id}`)}
                       style={{ cursor: 'pointer' }}
                     >
-                      <div className="medicine-image">
+                      <div className="product-image">
                         <img 
-                          src={medicine.image_url} 
-                          alt={medicine.name}
+                          src={product.image_url} 
+                          alt={product.name}
                           onError={(e) => {
                             e.target.src = 'https://images.unsplash.com/photo-1584308666744-24d5b474b2f0?w=400&h=300&fit=crop&crop=center';
                           }}
                         />
                       </div>
-                      <div className="medicine-info">
-                        <h4 className="medicine-name">{medicine.name}</h4>
-                        <p className="medicine-price">₹{medicine.price}</p>
-                        <p className="medicine-description">{medicine.description}</p>
-                        {medicine.dosage_limit && (
-                          <p className="medicine-dosage">
-                            <strong>Dosage:</strong> {medicine.dosage_limit}
+                      <div className="product-info">
+                        <h4 className="product-name">{product.name}</h4>
+                        <p className="product-price">₹{product.price}</p>
+                        <p className="product-description">{product.description}</p>
+                        {product.categories?.name && (
+                          <p className="product-category">
+                            <strong>Category:</strong> {product.categories.name}
                           </p>
                         )}
-                        <div className="medicine-actions">
+                        <div className="product-actions">
                           <button 
                             className="btn-danger"
                             onClick={(e) => {
                               e.stopPropagation();
-                              deleteMedicine(medicine.id);
+                              deleteProduct(product.id);
                             }}
                           >
                             <span className="btn-icon">🗑️</span>
@@ -527,7 +561,6 @@ const AdminDashboard = () => {
           </div>
         </div>
       </main>
-      <Footer />
 
       {/* Toast Notification */}
       {toast.show && (

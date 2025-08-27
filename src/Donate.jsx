@@ -8,7 +8,7 @@ import './Donate.css';
 
 const Donate = () => {
   const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
+
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -39,7 +39,10 @@ const Donate = () => {
         // Load products
         const { data: productsData, error: productsError } = await supabase
           .from('products')
-          .select('*')
+          .select(`
+            *,
+            categories(name, description)
+          `)
           .eq('in_stock', true); // Only show available products
 
         if (productsError) throw productsError;
@@ -56,11 +59,7 @@ const Donate = () => {
 
   // Get category name from product
   const getProductCategoryName = (product) => {
-    if (product.category_id && categories.length > 0) {
-      const category = categories.find(cat => cat.id === product.category_id);
-      return category ? category.name : 'Uncategorized';
-    }
-    return 'Uncategorized';
+    return product.categories?.name || 'Uncategorized';
   };
 
   // Filter products based on category and search

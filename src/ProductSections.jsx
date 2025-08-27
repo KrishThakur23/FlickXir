@@ -24,7 +24,7 @@ const ProductSections = () => {
       setLoading(true);
       setError(null);
   
-      // Call ProductService to get all products
+      // Call ProductService to get all products with categories
       const result = await ProductService.getProducts({ limit: 50 });
       console.log('👉 Raw result from Supabase:', result);
   
@@ -59,7 +59,7 @@ const ProductSections = () => {
     const categories = {};
     
     products.forEach(product => {
-      const categoryName = product.category?.name || 'Uncategorized';
+      const categoryName = product.categories?.name || 'Uncategorized';
       if (!categories[categoryName]) {
         categories[categoryName] = [];
       }
