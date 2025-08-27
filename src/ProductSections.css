@@ -76,8 +76,9 @@
 }
 
 .product-image {
-  width: 120px;
-  height: 120px;
+  width: 160px;
+  height: 50%;
+  min-height: 120px;
   margin: 0 auto 1rem;
   border-radius: 12px;
   overflow: hidden;
@@ -86,6 +87,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0;
 }
 
 .product-image img {
@@ -93,6 +95,13 @@
   height: 100%;
   object-fit: cover;
   display: block;
+  transition: transform 0.3s ease;
+  margin: 0;
+  padding: 0;
+}
+
+.product-card:hover .product-image img {
+  transform: scale(1.05);
 }
 
 .product-name {

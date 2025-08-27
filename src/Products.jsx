@@ -14,10 +14,16 @@ const Products = () => {
   const [diseaseFilter, setDiseaseFilter] = useState(null);
   const [categoryIdsFilter, setCategoryIdsFilter] = useState([]);
   const [keywordsFilter, setKeywordsFilter] = useState([]);
+<<<<<<< HEAD
   const [sortBy, setSortBy] = useState('name');
   const [viewMode, setViewMode] = useState('grid');
   const [priceRange, setPriceRange] = useState([0, 1000]);
   const [showFilters, setShowFilters] = useState(false);
+=======
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+  const [selectedSearchIndex, setSelectedSearchIndex] = useState(-1);
+>>>>>>> 408682150a1e2fa24e5be0fe76839c519427599b
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -221,6 +227,32 @@ const Products = () => {
     return 'Uncategorized';
   };
 
+  // Search functionality
+  const handleSearchChange = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    setSelectedSearchIndex(-1);
+    
+    if (query.trim() === '') {
+      setSearchResults([]);
+      setShowSearchDropdown(false);
+    } else {
+      const results = products.filter(product =>
+        product.name.toLowerCase().includes(query.toLowerCase()) ||
+        product.description.toLowerCase().includes(query.toLowerCase())
+      );
+      setSearchResults(results);
+      setShowSearchDropdown(true);
+    }
+  };
+
+  const handleSearchResultClick = (product) => {
+    setSearchQuery('');
+    setShowSearchDropdown(false);
+    setSearchResults([]);
+    navigate(`/product/${product.id}`);
+  };
+
   // Filter products based on category, search, and disease filters
   const filteredProducts = products.filter(product => {
     // Basic category and search filtering
@@ -275,6 +307,20 @@ const Products = () => {
     window.scrollTo(0, 0);
   }, []);
 
+  // Close search dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.search-bar')) {
+        setShowSearchDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   if (loading) {
     return (
       <div className="products-loading">
@@ -309,6 +355,7 @@ const Products = () => {
       </div>
 
       <div className="products-container">
+<<<<<<< HEAD
         {/* Enhanced Search and Controls */}
         <div className="products-controls">
           <div className="search-section">
@@ -329,6 +376,73 @@ const Products = () => {
                 </button>
               )}
             </div>
+=======
+        {/* Filters and Search */}
+        <div className="products-filters">
+          <div className="search-bar">
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={searchQuery}
+              onChange={handleSearchChange}
+              onFocus={() => {
+                if (searchQuery.trim() !== '') {
+                  setShowSearchDropdown(true);
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'ArrowDown') {
+                  e.preventDefault();
+                  setSelectedSearchIndex(prev => 
+                    prev < searchResults.length - 1 ? prev + 1 : prev
+                  );
+                } else if (e.key === 'ArrowUp') {
+                  e.preventDefault();
+                  setSelectedSearchIndex(prev => prev > 0 ? prev - 1 : -1);
+                } else if (e.key === 'Enter' && selectedSearchIndex >= 0) {
+                  e.preventDefault();
+                  handleSearchResultClick(searchResults[selectedSearchIndex]);
+                } else if (e.key === 'Escape') {
+                  setShowSearchDropdown(false);
+                  setSelectedSearchIndex(-1);
+                }
+              }}
+            />
+            
+            {/* Search Dropdown */}
+            {showSearchDropdown && searchResults.length > 0 && (
+              <div className="search-dropdown">
+                {searchResults.slice(0, 5).map((product, index) => (
+                  <div
+                    key={product.id}
+                    className={`search-result-item ${index === selectedSearchIndex ? 'selected' : ''}`}
+                    onClick={() => handleSearchResultClick(product)}
+                    onMouseEnter={() => setSelectedSearchIndex(index)}
+                  >
+                    <div className="search-result-image">
+                      <img 
+                        src={product.image_urls && product.image_urls.length > 0 ? product.image_urls[0] : '/placeholder-product.jpg'} 
+                        alt={product.name}
+                        onError={(e) => {
+                          e.target.src = '/placeholder-product.jpg';
+                        }}
+                      />
+                    </div>
+                    <div className="search-result-info">
+                      <div className="search-result-name">{product.name}</div>
+                      <div className="search-result-category">{getProductCategoryName(product)}</div>
+                      <div className="search-result-price">${product.price}</div>
+                    </div>
+                  </div>
+                ))}
+                {searchResults.length > 5 && (
+                  <div className="search-result-more">
+                    +{searchResults.length - 5} more results
+                  </div>
+                )}
+              </div>
+            )}
+>>>>>>> 408682150a1e2fa24e5be0fe76839c519427599b
           </div>
 
           <div className="controls-row">
