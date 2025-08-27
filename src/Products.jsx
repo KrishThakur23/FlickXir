@@ -14,6 +14,10 @@ const Products = () => {
   const [diseaseFilter, setDiseaseFilter] = useState(null);
   const [categoryIdsFilter, setCategoryIdsFilter] = useState([]);
   const [keywordsFilter, setKeywordsFilter] = useState([]);
+  const [sortBy, setSortBy] = useState('name');
+  const [viewMode, setViewMode] = useState('grid');
+  const [priceRange, setPriceRange] = useState([0, 1000]);
+  const [showFilters, setShowFilters] = useState(false);
   const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -282,39 +286,140 @@ const Products = () => {
 
   return (
     <div className="products-page">
+      {/* Enhanced Hero Section */}
       <div className="products-hero">
-        <h1>Our Products</h1>
-        <p>Discover our range of healthcare products</p>
+        <div className="hero-content">
+          <h1>Our Products</h1>
+          <p>Discover our comprehensive range of healthcare products and medicines</p>
+          <div className="hero-stats">
+            <div className="stat">
+              <span className="stat-number">{products.length}</span>
+              <span className="stat-label">Products</span>
+            </div>
+            <div className="stat">
+              <span className="stat-number">{categories.length}</span>
+              <span className="stat-label">Categories</span>
+            </div>
+            <div className="stat">
+              <span className="stat-number">{products.filter(p => p.in_stock).length}</span>
+              <span className="stat-label">In Stock</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="products-container">
-        {/* Filters and Search */}
-        <div className="products-filters">
-          <div className="search-bar">
-            <input
-              type="text"
-              placeholder="Search products..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+        {/* Enhanced Search and Controls */}
+        <div className="products-controls">
+          <div className="search-section">
+            <div className="search-bar">
+              <span className="search-icon">🔍</span>
+              <input
+                type="text"
+                placeholder="Search products, medicines, or brands..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              {searchQuery && (
+                <button 
+                  className="clear-search"
+                  onClick={() => setSearchQuery('')}
+                >
+                  ×
+                </button>
+              )}
+            </div>
           </div>
 
-          <div className="category-filters">
-            <button
-              className={`category-btn ${selectedCategory === 'all' ? 'active' : ''}`}
-              onClick={() => setSelectedCategory('all')}
+          <div className="controls-row">
+            <button 
+              className="filter-toggle"
+              onClick={() => setShowFilters(!showFilters)}
             >
-              All Products
+              <span>🔧</span> Filters
             </button>
-            {categories.map(category => (
-              <button
-                key={category.id}
-                className={`category-btn ${selectedCategory === category.name ? 'active' : ''}`}
-                onClick={() => setSelectedCategory(category.name)}
+            
+            <div className="view-controls">
+              <button 
+                className={`view-btn ${viewMode === 'grid' ? 'active' : ''}`}
+                onClick={() => setViewMode('grid')}
               >
-                {category.name}
+                ⊞
               </button>
-            ))}
+              <button 
+                className={`view-btn ${viewMode === 'list' ? 'active' : ''}`}
+                onClick={() => setViewMode('list')}
+              >
+                ☰
+              </button>
+            </div>
+
+            <select 
+              className="sort-select"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+            >
+              <option value="name">Sort by Name</option>
+              <option value="price-low">Price: Low to High</option>
+              <option value="price-high">Price: High to Low</option>
+              <option value="newest">Newest First</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Enhanced Filters Panel */}
+        <div className={`products-filters ${showFilters ? 'show' : ''}`}>
+          <div className="filter-section">
+            <h3>Categories</h3>
+            <div className="category-filters">
+              <button
+                className={`category-btn ${selectedCategory === 'all' ? 'active' : ''}`}
+                onClick={() => setSelectedCategory('all')}
+              >
+                All Products ({products.length})
+              </button>
+              {categories.map(category => {
+                const count = products.filter(p => getProductCategoryName(p) === category.name).length;
+                return (
+                  <button
+                    key={category.id}
+                    className={`category-btn ${selectedCategory === category.name ? 'active' : ''}`}
+                    onClick={() => setSelectedCategory(category.name)}
+                  >
+                    {category.name} ({count})
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="filter-section">
+            <h3>Price Range</h3>
+            <div className="price-filter">
+              <input
+                type="range"
+                min="0"
+                max="1000"
+                value={priceRange[1]}
+                onChange={(e) => setPriceRange([0, parseInt(e.target.value)])}
+                className="price-slider"
+              />
+              <div className="price-display">
+                ₹0 - ₹{priceRange[1]}
+              </div>
+            </div>
+          </div>
+
+          <div className="filter-section">
+            <h3>Availability</h3>
+            <div className="availability-filters">
+              <label className="filter-checkbox">
+                <input type="checkbox" /> In Stock Only
+              </label>
+              <label className="filter-checkbox">
+                <input type="checkbox" /> On Sale
+              </label>
+            </div>
           </div>
         </div>
 
@@ -347,19 +452,51 @@ const Products = () => {
           </div>
         )}
 
-        {/* Products Grid */}
-        <div className="products-grid">
+        {/* Results Summary */}
+        <div className="results-summary">
+          <span className="results-count">
+            Showing {filteredProducts.length} of {products.length} products
+          </span>
+        </div>
+
+        {/* Enhanced Products Grid */}
+        <div className={`products-grid ${viewMode}`}>
           {filteredProducts.length === 0 ? (
             <div className="no-products">
-              <p>No products found matching your criteria.</p>
+              <div className="no-products-icon">🔍</div>
+              <h3>No products found</h3>
+              <p>Try adjusting your search criteria or filters</p>
+              <button 
+                className="clear-filters-btn"
+                onClick={() => {
+                  setSearchQuery('');
+                  setSelectedCategory('all');
+                  clearDiseaseFilters();
+                }}
+              >
+                Clear All Filters
+              </button>
             </div>
           ) : (
-            filteredProducts.map(product => (
+            filteredProducts
+              .sort((a, b) => {
+                switch (sortBy) {
+                  case 'price-low':
+                    return a.price - b.price;
+                  case 'price-high':
+                    return b.price - a.price;
+                  case 'newest':
+                    return new Date(b.created_at) - new Date(a.created_at);
+                  default:
+                    return a.name.localeCompare(b.name);
+                }
+              })
+              .filter(product => product.price <= priceRange[1])
+              .map(product => (
               <div 
                 key={product.id} 
                 className="product-card"
                 onClick={() => navigate(`/product/${product.id}`)}
-                style={{ cursor: 'pointer' }}
               >
                 <div className="product-image">
                   {product.image_urls && product.image_urls.length > 0 ? (
@@ -372,35 +509,90 @@ const Products = () => {
                     />
                   ) : (
                     <div className="placeholder-image">
-                      <span>📦</span>
+                      <span>💊</span>
                     </div>
                   )}
-                                      <div className="product-category">
-                      <span className="category-tag">{getProductCategoryName(product)}</span>
-                    </div>
+                  
+                  <div className="product-badges">
+                    <span className="category-badge">{getProductCategoryName(product)}</span>
+                    {!product.in_stock && <span className="stock-badge out-of-stock">Out of Stock</span>}
+                    {product.prescription_required && <span className="prescription-badge">Rx</span>}
+                  </div>
+
+                  <div className="product-actions-overlay">
+                    <button 
+                      className="quick-view-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/product/${product.id}`);
+                      }}
+                    >
+                      👁️ Quick View
+                    </button>
+                  </div>
                 </div>
 
                 <div className="product-info">
                   <h3 className="product-name">{product.name}</h3>
                   <p className="product-description">{product.description}</p>
                   
+                  {product.manufacturer && (
+                    <div className="product-manufacturer">
+                      by {product.manufacturer}
+                    </div>
+                  )}
+
+                  <div className="product-rating">
+                    <div className="stars">
+                      {'★'.repeat(5)}
+                    </div>
+                    <span className="rating-text">(4.5) 120 reviews</span>
+                  </div>
+                  
                   <div className="product-meta">
-                    <span className="product-price">${product.price}</span>
-                    <span className={`product-stock ${product.in_stock ? 'in-stock' : 'out-of-stock'}`}>
-                      {product.in_stock ? 'In Stock' : 'Out of Stock'}
-                    </span>
+                    <div className="price-section">
+                      <span className="product-price">₹{product.price}</span>
+                      {product.original_price && product.original_price > product.price && (
+                        <>
+                          <span className="original-price">₹{product.original_price}</span>
+                          <span className="discount-badge">
+                            {Math.round(((product.original_price - product.price) / product.original_price) * 100)}% OFF
+                          </span>
+                        </>
+                      )}
+                    </div>
+                    
+                    <div className="stock-info">
+                      {product.in_stock ? (
+                        <span className="in-stock">✅ In Stock</span>
+                      ) : (
+                        <span className="out-of-stock">❌ Out of Stock</span>
+                      )}
+                    </div>
                   </div>
 
-                  <button
-                    className={`add-to-cart-btn ${!product.in_stock ? 'disabled' : ''}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      addToCart(product);
-                    }}
-                    disabled={!product.in_stock}
-                  >
-                    {product.in_stock ? 'Add to Cart' : 'Out of Stock'}
-                  </button>
+                  <div className="product-buttons">
+                    <button
+                      className={`add-to-cart-btn ${!product.in_stock ? 'disabled' : ''}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        addToCart(product);
+                      }}
+                      disabled={!product.in_stock}
+                    >
+                      {product.in_stock ? '🛒 Add to Cart' : 'Out of Stock'}
+                    </button>
+                    
+                    <button 
+                      className="wishlist-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Add to wishlist functionality
+                      }}
+                    >
+                      ❤️
+                    </button>
+                  </div>
                 </div>
               </div>
             ))

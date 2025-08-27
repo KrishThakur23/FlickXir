@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import Header from './Header';
-import Footer from './Footer';
 import './Terms.css';
 
 const Terms = () => {
@@ -492,7 +491,6 @@ const Terms = () => {
           </div>
         </div>
       </main>
-      <Footer />
     </div>
   );
 };

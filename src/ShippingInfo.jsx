@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import Header from './Header';
-import Footer from './Footer';
 import './ShippingInfo.css';
 
 const ShippingInfo = () => {
@@ -340,7 +339,6 @@ const ShippingInfo = () => {
           </div>
         </div>
       </main>
-      <Footer />
     </div>
   );
 };

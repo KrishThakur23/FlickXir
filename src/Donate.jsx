@@ -3,12 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { supabase } from './config/supabase';
 import Header from './Header';
-import Footer from './Footer';
 import './Donate.css';
 
 const Donate = () => {
   const [products, setProducts] = useState([]);
-
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -188,7 +187,6 @@ const Donate = () => {
           <div className="loading-spinner"></div>
           <p>Loading medicines...</p>
         </div>
-        <Footer />
       </div>
     );
   }
@@ -479,7 +477,6 @@ const Donate = () => {
           </div>
         </section>
       </main>
-      <Footer />
     </div>
   );
 };

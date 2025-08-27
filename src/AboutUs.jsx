@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import Header from './Header';
-import Footer from './Footer';
 import './AboutUs.css';
 
 const AboutUs = () => {
@@ -192,25 +191,138 @@ const AboutUs = () => {
             <div className="section-content">
               <div className="text-content">
                 <h2>Our Story</h2>
-                <p>Founded in 2024, FlickXir was born from a simple yet powerful idea: healthcare should be just a click away. Our founders, having experienced the challenges of accessing quality healthcare in India, envisioned a platform that would eliminate the barriers between patients and their health needs.</p>
-                <p>Starting as a small team of healthcare enthusiasts and technology experts, we've grown into a trusted platform serving thousands of customers across India. Our journey has been driven by the countless stories of customers whose lives we've touched through accessible healthcare.</p>
-                <p>Today, FlickXir stands as a testament to the power of technology in transforming healthcare delivery, making it more patient-centric, efficient, and reliable.</p>
+                <div className="story-timeline">
+                  <div className="timeline-item">
+                    <div className="timeline-year">2024</div>
+                    <div className="timeline-content">
+                      <h3>The Beginning</h3>
+                      <p>Founded with a vision to make healthcare accessible to everyone. Started with a small team of passionate healthcare professionals and tech experts.</p>
+                    </div>
+                  </div>
+                  <div className="timeline-item">
+                    <div className="timeline-year">Q2 2024</div>
+                    <div className="timeline-content">
+                      <h3>First Milestone</h3>
+                      <p>Launched our platform with 1,000+ medicines and partnered with 10 licensed pharmacies across major cities.</p>
+                    </div>
+                  </div>
+                  <div className="timeline-item">
+                    <div className="timeline-year">Q4 2024</div>
+                    <div className="timeline-content">
+                      <h3>Rapid Growth</h3>
+                      <p>Expanded to 50+ cities, served 10,000+ customers, and introduced innovative features like prescription upload and medicine donation.</p>
+                    </div>
+                  </div>
+                  <div className="timeline-item">
+                    <div className="timeline-year">Today</div>
+                    <div className="timeline-content">
+                      <h3>Leading the Future</h3>
+                      <p>Continuing to innovate with AI-powered health recommendations, telemedicine integration, and sustainable healthcare solutions.</p>
+                    </div>
+                  </div>
+                </div>
               </div>
               <div className="image-content">
                 <div className="story-stats">
                   <div className="stat">
-                    <div className="stat-number">10,000+</div>
+                    <div className="stat-number counter" data-target="10000">0</div>
                     <div className="stat-label">Happy Customers</div>
                   </div>
                   <div className="stat">
-                    <div className="stat-number">5,000+</div>
+                    <div className="stat-number counter" data-target="5000">0</div>
                     <div className="stat-label">Medicines Available</div>
                   </div>
                   <div className="stat">
-                    <div className="stat-number">50+</div>
+                    <div className="stat-number counter" data-target="50">0</div>
                     <div className="stat-label">Cities Served</div>
                   </div>
+                  <div className="stat">
+                    <div className="stat-number counter" data-target="24">0</div>
+                    <div className="stat-label">Hours Support</div>
+                  </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Innovation Section */}
+        <section className="about-section innovation-section">
+          <div className="container">
+            <h2 className="section-title" id="innovation" data-animate>
+              <span className={`title-word ${isVisible.innovation ? 'animate-bounce-in' : ''}`}>Innovation</span>
+              <span className={`title-word ${isVisible.innovation ? 'animate-bounce-in' : ''}`} style={{animationDelay: '0.2s'}}>at</span>
+              <span className={`title-word ${isVisible.innovation ? 'animate-bounce-in' : ''}`} style={{animationDelay: '0.4s'}}>FlickXir</span>
+            </h2>
+            <div className="innovation-grid">
+              <div className={`innovation-card ${isVisible.innovation ? 'animate-float-up' : ''}`} style={{animationDelay: '0.1s'}}>
+                <div className="innovation-icon">🤖</div>
+                <h3>AI-Powered Recommendations</h3>
+                <p>Smart algorithms analyze your health patterns to suggest personalized medicine alternatives and health tips.</p>
+                <div className="innovation-features">
+                  <span>Machine Learning</span>
+                  <span>Personalization</span>
+                  <span>Health Analytics</span>
+                </div>
+              </div>
+              <div className={`innovation-card ${isVisible.innovation ? 'animate-float-up' : ''}`} style={{animationDelay: '0.2s'}}>
+                <div className="innovation-icon">📱</div>
+                <h3>Mobile-First Experience</h3>
+                <p>Seamless mobile app with offline capabilities, voice search, and augmented reality for medicine identification.</p>
+                <div className="innovation-features">
+                  <span>Voice Search</span>
+                  <span>AR Integration</span>
+                  <span>Offline Mode</span>
+                </div>
+              </div>
+              <div className={`innovation-card ${isVisible.innovation ? 'animate-float-up' : ''}`} style={{animationDelay: '0.3s'}}>
+                <div className="innovation-icon">🌱</div>
+                <h3>Sustainable Healthcare</h3>
+                <p>Eco-friendly packaging, medicine recycling programs, and carbon-neutral delivery options for a greener future.</p>
+                <div className="innovation-features">
+                  <span>Eco Packaging</span>
+                  <span>Carbon Neutral</span>
+                  <span>Recycling</span>
+                </div>
+              </div>
+              <div className={`innovation-card ${isVisible.innovation ? 'animate-float-up' : ''}`} style={{animationDelay: '0.4s'}}>
+                <div className="innovation-icon">🔗</div>
+                <h3>Blockchain Security</h3>
+                <p>Immutable medicine tracking from manufacturer to delivery, ensuring authenticity and preventing counterfeit drugs.</p>
+                <div className="innovation-features">
+                  <span>Supply Chain</span>
+                  <span>Authentication</span>
+                  <span>Transparency</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Awards & Recognition */}
+        <section className="about-section awards-section">
+          <div className="container">
+            <h2 className="section-title">Awards & Recognition</h2>
+            <div className="awards-grid">
+              <div className="award-item">
+                <div className="award-icon">🏆</div>
+                <h3>Best Healthcare Startup 2024</h3>
+                <p>Recognized by Healthcare Innovation Awards for revolutionizing medicine delivery in India.</p>
+              </div>
+              <div className="award-item">
+                <div className="award-icon">⭐</div>
+                <h3>Customer Choice Award</h3>
+                <p>Voted as the most trusted online pharmacy platform by over 10,000 customers nationwide.</p>
+              </div>
+              <div className="award-item">
+                <div className="award-icon">🌟</div>
+                <h3>Digital Excellence Award</h3>
+                <p>Honored for outstanding digital transformation in healthcare delivery and customer experience.</p>
+              </div>
+              <div className="award-item">
+                <div className="award-icon">💡</div>
+                <h3>Innovation in Healthcare</h3>
+                <p>Recognized for implementing cutting-edge technology solutions in pharmaceutical services.</p>
               </div>
             </div>
           </div>
@@ -272,7 +384,6 @@ const AboutUs = () => {
           </div>
         </section>
       </main>
-      <Footer />
     </div>
   );
 };

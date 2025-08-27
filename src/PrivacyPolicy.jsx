@@ -1,18 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import Header from './Header';
-import Footer from './Footer';
 import './PrivacyPolicy.css';
 
 const PrivacyPolicy = () => {
   const [activeSection, setActiveSection] = useState('');
+  const [showBackToTop, setShowBackToTop] = useState(false);
+  const [readingProgress, setReadingProgress] = useState(0);
 
   useEffect(() => { 
     window.scrollTo(0, 0); 
     
-    // Handle scroll for active section highlighting
+    // Handle scroll for active section highlighting and progress
     const handleScroll = () => {
       const sections = document.querySelectorAll('.policy-section');
       const scrollPosition = window.scrollY + 100;
+      
+      // Calculate reading progress
+      const documentHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const scrolled = (window.scrollY / documentHeight) * 100;
+      setReadingProgress(Math.min(scrolled, 100));
+
+      // Show/hide back to top button
+      setShowBackToTop(window.scrollY > 300);
 
       sections.forEach((section) => {
         const sectionTop = section.offsetTop;
@@ -34,6 +43,10 @@ const PrivacyPolicy = () => {
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -627,7 +640,22 @@ const PrivacyPolicy = () => {
           </div>
         </div>
       </main>
-      <Footer />
+
+      {/* Back to Top Button */}
+      <button 
+        className={`back-to-top ${showBackToTop ? 'visible' : ''}`}
+        onClick={scrollToTop}
+        aria-label="Back to top"
+      >
+        ↑
+      </button>
+
+      {/* Reading Progress Indicator */}
+      <div 
+        className={`reading-progress ${showBackToTop ? 'visible' : ''}`}
+        style={{ '--progress': `${readingProgress}%` }}
+        title={`Reading progress: ${Math.round(readingProgress)}%`}
+      />
     </div>
   );
 };
