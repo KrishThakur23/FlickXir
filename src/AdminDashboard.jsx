@@ -33,6 +33,7 @@ const AdminDashboard = () => {
   // Search and filters
   const [searchTerm, setSearchTerm] = useState('');
   const [darkMode, setDarkMode] = useState(false);
+  const [activeTab, setActiveTab] = useState('products');
 
   // Toast notifications
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
@@ -87,17 +88,6 @@ const AdminDashboard = () => {
       console.error('Error loading products:', err);
     }
   };
-
-
-
-  useEffect(() => {
-    // Only redirect if we're done loading
-    if (!loading) {
-      if (!isAuthenticated || !isAdminUser) {
-        navigate('/');
-      }
-    }
-  }, [loading, isAuthenticated, isAdminUser, navigate]);
 
   // Product handlers
   const handleProductImageChange = (e) => {
@@ -176,110 +166,38 @@ const AdminDashboard = () => {
     }
   };
 
-  const showToast = (message, type = 'success') => {
-    setToast({ show: true, message, type });
-    setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
-  };
-
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Debug logging
-  console.log('AdminDashboard - Auth State:', { 
-    loading, 
-    isAuthenticated, 
-    userEmail: user?.email,
-    isAdminUser,
-    adminEmail: ADMIN_EMAIL
-  });
-  
-  // Show current user email for debugging
-  console.log('🔍 Current user email:', user?.email);
-  console.log('🔍 Admin email:', ADMIN_EMAIL);
-  console.log('🔍 Is admin?', isAdminUser);
+  const showToast = (message, type = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
+  };
+
+  useEffect(() => {
+    // Only redirect if we're done loading
+    if (!loading) {
+      if (!isAuthenticated || !isAdminUser) {
+        navigate('/');
+      }
+    }
+  }, [loading, isAuthenticated, isAdminUser, navigate]);
 
   if (loading) {
     return (
       <div className="admin-page">
-        <main className="admin-main">
-          <div className="admin-container">
-            <div className="admin-card">
-              <div className="loading-state">
-                <div className="loading-spinner-large"></div>
-                <h3>Loading Dashboard...</h3>
-                <p>Please wait while we load your admin dashboard.</p>
-                <div style={{ marginTop: '1rem', fontSize: '0.875rem', color: '#6b7280' }}>
-                  Checking authentication status...
-                </div>
-              </div>
-            </div>
-          </div>
-        </main>
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Loading...</p>
+        </div>
       </div>
     );
   }
 
-  // For development/testing - allow access if user is authenticated
-  // In production, you should have proper admin role management
-  const allowAccess = isAuthenticated && (isAdminUser || process.env.NODE_ENV === 'development');
-  
-  // Temporary admin access for testing
-  const [tempAdminAccess, setTempAdminAccess] = useState(false);
-
-  if (!isAuthenticated) {
-    return (
-      <div className="admin-page">
-        <main className="admin-main">
-          <div className="admin-container">
-            <div className="admin-card unauthorized-card">
-              <div className="unauthorized-content">
-                <div className="unauthorized-icon">🔐</div>
-                <h2>Authentication Required</h2>
-                <p>Please sign in to access the admin dashboard.</p>
-                <button className="btn-primary" onClick={() => navigate('/signin')}>
-                  Sign In
-                </button>
-              </div>
-            </div>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
-  if (!allowAccess && !tempAdminAccess) {
-    return (
-      <div className="admin-page">
-        <main className="admin-main">
-          <div className="admin-container">
-            <div className="admin-card unauthorized-card">
-              <div className="unauthorized-content">
-                <div className="unauthorized-icon">🚫</div>
-                <h2>Access Denied</h2>
-                <p>You are not authorized to view this page.</p>
-                <div style={{ marginTop: '1rem', fontSize: '0.875rem', color: '#6b7280' }}>
-                  Admin access required. Contact administrator if you believe this is an error.
-                </div>
-                <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-                  <button className="btn-primary" onClick={() => navigate('/')}>
-                    Return to Home
-                  </button>
-                  <button 
-                    className="btn-secondary" 
-                    onClick={() => setTempAdminAccess(true)}
-                    style={{ fontSize: '0.875rem' }}
-                  >
-                    🔓 Demo Access (Testing)
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </main>
-      </div>
-    );
+  if (!isAuthenticated || !isAdminUser) {
+    return null;
   }
 
   return (
@@ -290,8 +208,18 @@ const AdminDashboard = () => {
           <div className="dashboard-header">
             <div className="header-content">
               <div className="header-text">
-                <h1 className="dashboard-title">Product Management Dashboard</h1>
-                <p className="dashboard-subtitle">Add and manage products in your store</p>
+                <div className="header-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="9" y1="9" x2="15" y2="9"/>
+                    <line x1="9" y1="12" x2="15" y2="12"/>
+                    <line x1="9" y1="15" x2="15" y2="15"/>
+                  </svg>
+                </div>
+                <div>
+                  <h1 className="dashboard-title">Dashboard</h1>
+                  <p className="dashboard-subtitle">Manage your products and orders with ease</p>
+                </div>
               </div>
               <div className="header-actions">
                 <button 
@@ -299,284 +227,285 @@ const AdminDashboard = () => {
                   onClick={() => setDarkMode(!darkMode)}
                   title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
                 >
-                  {darkMode ? '☀️' : '🌙'}
+                  {darkMode ? (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="5"/>
+                      <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                    </svg>
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                  )}
                 </button>
-                <button className="btn-secondary" onClick={() => navigate('/')}>
-                  <span className="btn-icon">👁️</span>
-                  View Site
-                </button>
               </div>
             </div>
           </div>
 
-          {/* Dashboard Stats Overview */}
-          <div className="stats-overview">
-            <div className="stat-card">
-              <div className="stat-icon">📦</div>
-              <div className="stat-content">
-                <div className="stat-number">{dashboardStats.totalProducts}</div>
-                <div className="stat-label">Total Products</div>
-              </div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon">🏷️</div>
-              <div className="stat-content">
-                <div className="stat-number">{dashboardStats.totalCategories}</div>
-                <div className="stat-label">Total Categories</div>
-              </div>
-            </div>
+          {/* Dashboard Tabs */}
+          <div className="dashboard-tabs">
+            <button 
+              className={`tab-button ${activeTab === 'products' ? 'active' : ''}`}
+              onClick={() => setActiveTab('products')}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+              </svg>
+              Products
+            </button>
+            <button 
+              className={`tab-button ${activeTab === 'orders' ? 'active' : ''}`}
+              onClick={() => setActiveTab('orders')}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Orders (0)
+            </button>
           </div>
 
-          {/* Search Bar */}
-          <div className="search-section">
-            <div className="search-container">
-              <div className="search-icon">🔍</div>
-              <input
-                type="text"
-                placeholder="Search products..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="search-input"
-              />
-            </div>
-          </div>
+          {/* Products Tab Content */}
+          {activeTab === 'products' && (
+            <>
+              {/* Products Section */}
+              <div className="products-section">
+                <div className="products-header">
+                  <div className="products-title">
+                    <h3>Your Products ({filteredProducts.length})</h3>
+                  </div>
+                  <button 
+                    className="btn-primary add-product-btn"
+                    onClick={() => setShowProductForm(!showProductForm)}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <line x1="12" y1="5" x2="12" y2="19"/>
+                      <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    Add Product
+                  </button>
+                </div>
 
-          {/* Product Management Section */}
-          <div className="content-section">
-            <div className="section-header">
-              <h2 className="section-title">Product Management</h2>
-              <p className="section-subtitle">Add and manage products in your store</p>
-            </div>
-
-            {/* Add Product Form */}
-            {showProductForm && (
-              <div className="admin-card">
-                <form onSubmit={handleProductSubmit} className="admin-form">
-                  {/* Basic Info Card */}
-                  <div className="form-card">
-                    <div className="form-card-header">
-                      <div className="card-icon">📦</div>
-                      <h3>Product Information</h3>
-                    </div>
-                    <div className="form-card-content">
-                      <div className="form-row">
-                        <div className="form-field">
-                          <label className="form-label">Product Name</label>
-                          <input 
-                            className="form-input" 
-                            value={productName} 
-                            onChange={(e) => setProductName(e.target.value)} 
-                            required 
-                            placeholder="e.g., Paracetamol 500mg" 
-                          />
+                {/* Add Product Form */}
+                {showProductForm && (
+                  <div className="admin-card">
+                    <form onSubmit={handleProductSubmit} className="admin-form">
+                      {/* Basic Info Card */}
+                      <div className="form-card">
+                        <div className="form-card-header">
+                          <div className="card-icon">📦</div>
+                          <h3>Product Information</h3>
                         </div>
-                        <div className="form-field">
-                          <label className="form-label">Description</label>
-                          <textarea 
-                            className="form-textarea" 
-                            value={productDescription} 
-                            onChange={(e) => setProductDescription(e.target.value)} 
-                            rows={4} 
-                            placeholder="Detailed description of the product..." 
-                          />
+                        <div className="form-card-content">
+                          <div className="form-row">
+                            <div className="form-field">
+                              <label className="form-label">Product Name</label>
+                              <input 
+                                className="form-input" 
+                                value={productName} 
+                                onChange={(e) => setProductName(e.target.value)} 
+                                required 
+                                placeholder="e.g., Paracetamol 500mg" 
+                              />
+                            </div>
+                            <div className="form-field">
+                              <label className="form-label">Description</label>
+                              <textarea 
+                                className="form-textarea" 
+                                value={productDescription} 
+                                onChange={(e) => setProductDescription(e.target.value)} 
+                                rows={4} 
+                                placeholder="Detailed description of the product..." 
+                              />
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
 
-                  {/* Pricing & Category Card */}
-                  <div className="form-card">
-                    <div className="form-card-header">
-                      <div className="card-icon">💰</div>
-                      <h3>Pricing & Category</h3>
-                    </div>
-                    <div className="form-card-content">
-                      <div className="form-row two-col">
-                        <div className="form-field">
-                          <label className="form-label">Price (₹)</label>
-                          <input 
-                            className="form-input" 
-                            type="number" 
-                            min="0" 
-                            step="0.01" 
-                            value={productPrice} 
-                            onChange={(e) => setProductPrice(e.target.value)} 
-                            required 
-                            placeholder="e.g., 25.00" 
-                          />
+                      {/* Pricing & Category Card */}
+                      <div className="form-card">
+                        <div className="form-card-header">
+                          <div className="card-icon">💰</div>
+                          <h3>Pricing & Category</h3>
                         </div>
-                        <div className="form-field">
-                          <label className="form-label">Category</label>
-                          <select 
-                            className="form-input" 
-                            value={productCategory} 
-                            onChange={(e) => setProductCategory(e.target.value)} 
-                            required
-                          >
-                            <option value="">Select a category</option>
-                            {categories.map(category => (
-                              <option key={category.id} value={category.name}>
-                                {category.name}
-                              </option>
-                            ))}
-                          </select>
+                        <div className="form-card-content">
+                          <div className="form-row two-col">
+                            <div className="form-field">
+                              <label className="form-label">Price (₹)</label>
+                              <input 
+                                className="form-input" 
+                                type="number" 
+                                min="0" 
+                                step="0.01" 
+                                value={productPrice} 
+                                onChange={(e) => setProductPrice(e.target.value)} 
+                                required 
+                                placeholder="e.g., 25.00" 
+                              />
+                            </div>
+                            <div className="form-field">
+                              <label className="form-label">Category</label>
+                              <select 
+                                className="form-input" 
+                                value={productCategory} 
+                                onChange={(e) => setProductCategory(e.target.value)} 
+                                required
+                              >
+                                <option value="">Select a category</option>
+                                {categories.map(category => (
+                                  <option key={category.id} value={category.name}>
+                                    {category.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </div>
 
-                  {/* Image Upload Card */}
-                  <div className="form-card">
-                    <div className="form-card-header">
-                      <div className="card-icon">🖼️</div>
-                      <h3>Product Image</h3>
-                    </div>
-                    <div className="form-card-content">
-                      <div className="form-field">
-                        <input 
-                          type="file" 
-                          accept="image/*" 
-                          onChange={handleProductImageChange}
-                          className="file-input-simple"
-                        />
-                        <div className="helper-text">Upload a clear image of the product (optional)</div>
+                      {/* Image Upload Card */}
+                      <div className="form-card">
+                        <div className="form-card-header">
+                          <div className="card-icon">🖼️</div>
+                          <h3>Product Image</h3>
+                        </div>
+                        <div className="form-card-content">
+                          <div className="form-field">
+                            <input 
+                              type="file" 
+                              accept="image/*" 
+                              onChange={handleProductImageChange}
+                              className="file-input-simple"
+                            />
+                            <div className="helper-text">Upload a clear image of the product (optional)</div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
 
-                  {/* Form Actions */}
-                  <div className="form-actions">
-                    <button 
-                      className="btn-secondary" 
-                      type="button" 
-                      onClick={() => setShowProductForm(false)}
-                    >
-                      <span className="btn-icon">❌</span>
-                      Cancel
-                    </button>
-                    <button 
-                      className="btn-primary" 
-                      type="submit" 
-                      disabled={isProductSubmitting}
-                    >
-                      {isProductSubmitting ? (
-                        <>
-                          <span className="loading-spinner"></span>
-                          Adding...
-                        </>
-                      ) : (
-                        <>
-                          <span className="btn-icon">✅</span>
-                          Add Product
-                        </>
+                      {/* Form Actions */}
+                      <div className="form-actions">
+                        <button 
+                          className="btn-secondary" 
+                          type="button" 
+                          onClick={() => setShowProductForm(false)}
+                        >
+                          <span className="btn-icon">❌</span>
+                          Cancel
+                        </button>
+                        <button 
+                          className="btn-primary" 
+                          type="submit" 
+                          disabled={isProductSubmitting}
+                        >
+                          {isProductSubmitting ? (
+                            <>
+                              <span className="loading-spinner"></span>
+                              Adding...
+                            </>
+                          ) : (
+                            <>
+                              <span className="btn-icon">✅</span>
+                              Add Product
+                            </>
+                          )}
+                        </button>
+                      </div>
+
+                      {productMessage && (
+                        <div className={`status-message ${productMessage.startsWith('✅') ? 'success' : 'error'}`}>
+                          {productMessage}
+                        </div>
                       )}
-                    </button>
+                    </form>
                   </div>
+                )}
 
-                  {productMessage && (
-                    <div className={`status-message ${productMessage.startsWith('✅') ? 'success' : 'error'}`}>
-                      {productMessage}
-                    </div>
-                  )}
-                </form>
-              </div>
-            )}
-
-            {/* Products List */}
-            <div className="products-section">
-              <div className="products-header">
-                <div className="products-title">
-                  <h3>Current Products</h3>
-                  <span className="products-count">({filteredProducts.length})</span>
-                </div>
-                <button 
-                  className="btn-primary floating-action"
-                  onClick={() => setShowProductForm(!showProductForm)}
-                >
-                  <span className="btn-icon">+</span>
-                  {showProductForm ? 'Cancel' : 'Add New Product'}
-                </button>
-              </div>
-
-              {filteredProducts.length === 0 ? (
-                <div className="empty-state">
-                  <div className="empty-icon">📦</div>
-                  <h4>No products found</h4>
-                  <p>{searchTerm ? 'Try adjusting your search terms' : 'Add your first product to get started!'}</p>
-                  {!searchTerm && (
-                    <button 
-                      className="btn-primary"
-                      onClick={() => setShowProductForm(true)}
-                    >
-                      <span className="btn-icon">+</span>
-                      Add First Product
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <div className="products-grid">
-                  {filteredProducts.map((product) => (
-                    <div 
-                      key={product.id} 
-                      className="product-card"
-                      onClick={() => navigate(`/product/${product.id}`)}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      <div className="product-image">
-                        <img 
-                          src={product.image_url} 
-                          alt={product.name}
-                          onError={(e) => {
-                            e.target.src = 'https://images.unsplash.com/photo-1584308666744-24d5b474b2f0?w=400&h=300&fit=crop&crop=center';
-                          }}
-                        />
-                      </div>
-                      <div className="product-info">
-                        <h4 className="product-name">{product.name}</h4>
-                        <p className="product-price">₹{product.price}</p>
-                        <p className="product-description">{product.description}</p>
-                        {product.categories?.name && (
-                          <p className="product-category">
-                            <strong>Category:</strong> {product.categories.name}
-                          </p>
-                        )}
+                {/* Products Grid */}
+                {filteredProducts.length === 0 ? (
+                  <div className="empty-state">
+                    <div className="empty-icon">📦</div>
+                    <h4>No products found</h4>
+                    <p>{searchTerm ? 'Try adjusting your search terms' : 'Add your first product to get started!'}</p>
+                    {!searchTerm && (
+                      <button 
+                        className="btn-primary"
+                        onClick={() => setShowProductForm(true)}
+                      >
+                        <span className="btn-icon">+</span>
+                        Add First Product
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="products-grid">
+                    {filteredProducts.map((product) => (
+                      <div 
+                        key={product.id} 
+                        className="product-card"
+                      >
+                        <div className="product-image">
+                          <img 
+                            src={product.image_url} 
+                            alt={product.name}
+                            onError={(e) => {
+                              e.target.src = 'https://images.unsplash.com/photo-1584308666744-24d5b474b2f0?w=400&h=300&fit=crop&crop=center';
+                            }}
+                          />
+                          <div className="product-tag">PRODUCT</div>
+                        </div>
+                        <div className="product-info">
+                          <h4 className="product-name">{product.name}</h4>
+                          <p className="product-category">{product.categories?.name || 'Uncategorized'}</p>
+                          <p className="product-price">₹{product.price}</p>
+                          <p className="product-description">{product.description}</p>
+                        </div>
                         <div className="product-actions">
                           <button 
-                            className="btn-danger"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteProduct(product.id);
-                            }}
+                            className="btn-edit"
+                            onClick={() => navigate(`/product/${product.id}`)}
                           >
-                            <span className="btn-icon">🗑️</span>
-                            Delete
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                              <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+                            Edit
+                          </button>
+                          <button 
+                            className="btn-delete"
+                            onClick={() => deleteProduct(product.id)}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M3 6h18"/>
+                              <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                            </svg>
                           </button>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* Orders Tab Content */}
+          {activeTab === 'orders' && (
+            <div className="orders-section">
+              <div className="empty-state">
+                <div className="empty-icon">📋</div>
+                <h4>No orders yet</h4>
+                <p>Orders will appear here when customers make purchases</p>
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Toast Notification */}
+          {toast.show && (
+            <div className={`toast-notification ${toast.type}`}>
+              {toast.message}
+            </div>
+          )}
         </div>
       </main>
-
-      {/* Toast Notification */}
-      {toast.show && (
-        <div className={`toast-notification ${toast.type}`}>
-          <div className="toast-icon">
-            {toast.type === 'success' ? '✅' : '❌'}
-          </div>
-          <div className="toast-message">{toast.message}</div>
-          <button 
-            className="toast-close"
-            onClick={() => setToast({ show: false, message: '', type: 'success' })}
-          >
-            ✕
-          </button>
-        </div>
-      )}
     </div>
   );
 };

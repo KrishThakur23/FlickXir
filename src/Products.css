@@ -58,6 +58,96 @@
   border-color: #0891b2;
 }
 
+/* Search Dropdown Styles */
+.search-bar {
+  position: relative;
+}
+
+.search-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  max-height: 400px;
+  overflow-y: auto;
+  margin-top: 4px;
+}
+
+.search-result-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid #f1f5f9;
+  transition: background-color 0.2s ease;
+}
+
+.search-result-item:last-child {
+  border-bottom: none;
+}
+
+.search-result-item:hover,
+.search-result-item.selected {
+  background-color: #f8fafc;
+}
+
+.search-result-image {
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.search-result-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.search-result-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.search-result-name {
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 2px;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.search-result-category {
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 2px;
+}
+
+.search-result-price {
+  font-weight: 600;
+  color: #0891b2;
+  font-size: 14px;
+}
+
+.search-result-more {
+  padding: 12px 16px;
+  text-align: center;
+  color: #64748b;
+  font-size: 14px;
+  font-style: italic;
+  background-color: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+}
+
 .category-filters {
   display: flex;
   gap: 1rem;
@@ -174,8 +264,13 @@
 
 .product-image {
   position: relative;
-  height: 200px;
+  height: 50%;
+  min-height: 200px;
   overflow: hidden;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .product-image img {
@@ -183,6 +278,8 @@
   height: 100%;
   object-fit: cover;
   transition: transform 0.3s;
+  margin: 0;
+  padding: 0;
 }
 
 .product-card:hover .product-image img {

@@ -29,6 +29,7 @@ import ProductDetail from './components/ProductDetail';
 import Addresses from './Addresses';
 import Checkout from './Checkout';
 import './App.css';
+import './ProductCards.css';
 
 function App() {
   return (
